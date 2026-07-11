@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top App Recommendations & Deals</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        :root {
+            --accent-color: #FF6B00;
+            --secondary-dark: #0f172a;
+        }
+        .accent-btn {
+            background-color: var(--accent-color);
+            transition: all 0.2s ease-in-out;
+        }
+        .accent-btn:hover {
+            background-color: #e05e00;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 font-sans antialiased">
+
+    <header class="bg-white border-b border-gray-200 py-12 px-6 text-center">
+        <div class="max-w-3xl mx-auto">
+            <span class="text-xs font-bold uppercase tracking-widest text-orange-600 bg-orange-50 px-3 py-1 rounded-full">🔥 Handpicked Software & Apps</span>
+            <h1 class="text-4xl font-extrabold text-slate-900 mt-4 tracking-tight sm:text-5xl">
+                The Best Tools & Tech, Reviewed.
+            </h1>
+            <p class="mt-4 text-lg text-slate-600">
+                Stop wasting money on bad subscriptions. Claim exclusive sign-up bonuses and discounts using our verified referral links below.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        <div id="layout-wrapper" class="grid grid-cols-1 gap-8">
+            
+            <section id="main-content" class="space-y-6">
+                <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    ⭐ Featured Recommendations
+                </h2>
+                <div id="apps-container" class="space-y-4"></div>
+            </section>
+
+            <aside id="admin-panel" class="hidden bg-white p-6 rounded-2xl border-2 border-orange-500 shadow-xl h-fit">
+                <div class="border-b border-gray-100 pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-slate-900">🛡️ Secure Admin Portal</h3>
+                    <p class="text-xs text-orange-600 font-medium">Authorized changes will instantly update live local listings.</p>
+                </div>
+                
+                <form id="app-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">App Name</label>
+                            <input type="text" id="appName" required placeholder="e.g., Notion, NordVPN" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Badge/Tag</label>
+                            <input type="text" id="appTag" placeholder="e.g., Best Value, 20% Off" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Short Description</label>
+                        <textarea id="appDesc" required rows="3" placeholder="Explain what the app does and why they should click..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Your Referral Link</label>
+                        <input type="url" id="appLink" required placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    </div>
+
+                    <button type="submit" class="w-full accent-btn text-white font-bold py-2.5 px-4 rounded-lg text-sm shadow-md cursor-pointer tracking-wide">
+                        Add to Public Directory
+                    </button>
+                </form>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+        // ================= CONFIGURATION =================
+        const SECRET_URL_KEY = "mysecretnode";  // Change this to whatever secret keyword you want
+        const ADMIN_PASSWORD = "mysecurepass";  // Change this to your preferred master password
+        // =================================================
+
+        const appForm = document.getElementById('app-form');
+        const appsContainer = document.getElementById('apps-container');
+        const adminPanel = document.getElementById('admin-panel');
+        const layoutWrapper = document.getElementById('layout-wrapper');
+
+        // Check URL parameters for Admin authorization
+        const urlParams = new URLSearchParams(window.location.search);
+        let isAdmin = false;
+
+        if (urlParams.get('admin') === SECRET_URL_KEY) {
+            const accessPass = prompt("Enter Master Admin Password:");
+            if (accessPass === ADMIN_PASSWORD) {
+                isAdmin = true;
+                // Modify layout grid structure to make space for the form smoothly
+                layoutWrapper.classList.remove('grid-cols-1');
+                layoutWrapper.classList.add('lg:grid-cols-3');
+                document.getElementById('main-content').classList.add('lg:col-span-2');
+                adminPanel.classList.remove('hidden');
+            } else {
+                alert("Incorrect password. Viewing page in public mode.");
+            }
+        }
+
+        // Database setup
+        let apps = JSON.parse(localStorage.getItem('affiliateApps')) || [
+            {
+                name: "ExpressVPN",
+                tag: "🔥 Editor's Choice",
+                desc: "The fastest virtual private network server system on the market. Click below to get 3 months entirely free on an annual subscription setup.",
+                link: "https://example.com/vpn-referral"
+            }
+        ];
+
+        // Render listings
+        function renderApps() {
+            appsContainer.innerHTML = '';
+            
+            if(apps.length === 0) {
+                appsContainer.innerHTML = `<p class="text-gray-400 text-sm italic text-center py-8">No offers featured at the moment. Check back soon!</p>`;
+                return;
+            }
+
+            apps.forEach((app, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden group";
+                
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-xl font-bold text-slate-900">${app.name}</h3>
+                            ${app.tag ? `<span class="bg-orange-50 text-orange-700 text-xs font-bold px-2.5 py-0.5 rounded-md border border-orange-100">${app.tag}</span>` : ''}
+                        </div>
+                        <p class="mt-2 text-sm text-slate-600 leading-relaxed max-w-xl">${app.desc}</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <a href="${app.link}" target="_blank" rel="noopener noreferrer" class="accent-btn text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-sm text-center block whitespace-nowrap">
+                            Claim Bonus &rarr;
+                        </a>
+                        ${isAdmin ? `
+                        <button onclick="deleteApp(${index})" class="text-gray-300 hover:text-red-500 text-sm p-2 cursor-pointer transition-colors" title="Delete App">
+                            🗑️
+                        </button>
+                        ` : ''}
+                    </div>
+                `;
+                appsContainer.appendChild(card);
+            });
+        }
+
+        // Processing adding apps (Only works if authorized)
+        appForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!isAdmin) return;
+            
+            const newApp = {
+                name: document.getElementById('appName').value,
+                tag: document.getElementById('appTag').value,
+                desc: document.getElementById('appDesc').value,
+                link: document.getElementById('appLink').value
+            };
+
+            apps.push(newApp);
+            localStorage.setItem('affiliateApps', JSON.stringify(apps));
+            
+            renderApps();
+            appForm.reset();
+        });
+
+        // Processing deleting apps (Only works if authorized)
+        window.deleteApp = function(index) {
+            if(!isAdmin) return;
+            if(confirm("Are you sure you want to delete this app recommendation?")) {
+                apps.splice(index, 1);
+                localStorage.setItem('affiliateApps', JSON.stringify(apps));
+                renderApps();
+            }
+        }
+
+        renderApps();
+    </script>
+</body>
+</html>
